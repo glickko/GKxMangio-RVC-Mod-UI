@@ -35,6 +35,7 @@ This version adds a significant number of new features and quality-of-life impro
 * **Output Volume in Decibels (dB)**: The output volume is now measured in dB. This helps stabilize the output volume, ensuring different models produce a more consistent loudness.
 * **RMVPE as the Sole Pitch Algorithm**: All older pitch-finding algorithms have been removed to streamline the process. RMVPE is used exclusively for its superior speed and accuracy.
 
+
 ## 🔧 Installation
 
 These files are designed to be a **direct replacement** for the corresponding files in an existing Mangio RVC folder.
@@ -63,7 +64,7 @@ These files are designed to be a **direct replacement** for the corresponding fi
     ```
 2.  **Load Your Model** (Model & Devices Tab):
     * Click "Select .pth file" to load your main voice model from the `weights` folder.
-    * Check "Use Index File" and select your `.index` file from the `logs` folder for better timbre matching.
+    * Check "Use Index File" and select your `.index` file from the `logs` folder for better timbre matching, i prefer not use this for better performance.
 3.  **Configure Audio Devices** (Model & Devices Tab):
     * Select your microphone from the "Input Device" dropdown.
     * Select your headphones or speakers from the "Output Device" dropdown.
@@ -90,7 +91,7 @@ This guide provides a detailed explanation of every parameter in the user interf
 
 ### Main Tab
 
-* **Response Threshold**: A noise gate. Any sound from your microphone that is quieter than this threshold will be treated as silence. This is useful for eliminating background noise. Set this just above your ambient noise level. A good starting point is `-45` dB.
+* **Response Threshold**: A noise gate. Any sound from your microphone that is quieter than this threshold will be treated as silence. This is useful for eliminating background noise. Set this just above your ambient noise level. A good starting point is `-45` dB, RECOM: `DON'T USE THIS` use in `-60` for `TURN OFF`.
 * **Pitch Setting**: A static, global pitch shift applied to your voice, measured in semitones (`+12` = one octave up). This is the primary control for changing your pitch.
 * **Index Rate**: Controls the influence of the `.index` file on the final timbre. A higher rate makes the model try harder to match the timbre from the training data. A value between `0.5` and `0.8` is often a good balance, `off` or `0` is the best choice hahaha.
 * **Input/Output Volume**: Simple volume controls for the microphone input and the final audio output.
