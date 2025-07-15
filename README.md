@@ -9,13 +9,12 @@ This is a modified version of the Mangio RVC project, focusing on a streamlined 
   <img src="https://raw.githubusercontent.com/glickko/GKxMangio-RVC-Mod-UI/main/ss2.jpg" alt="image">
 </p>
 
-## 💬 Motivation
-
-I created this because I believe it's the best version for my needs, surpassing both the original RVC and other forks. The base Mangio RVC already had significant advantages: its `rmvpe.py` implementation uses a different logic, and its chunking method ensures that the audio quality remains excellent during real-time conversion. This project builds upon that strong foundation by adding a comprehensive and powerful user interface to unlock its full potential.
 
 ## 👾 Version Section
 
-This V1.xx Section is just only focusing in Advanced Parameter Features, the last stable version is `v1.10.2`, the next section will be in v2.xx focusing on other features like adding input from file or changing parameter in realtime mode without stopping the process, and other..
+V1.xx Section is just only focusing in Advanced Parameter Features, the last stable version is `v1.10.2`, the next section will be in v2.xx focusing on other features like adding input from file or changing parameter in realtime mode without stopping the process, and other..
+
+V2.xx Is advanced features for realtime changing parameters, or adding audio files.
 
 ## ✨ Key Features & Modifications
 
