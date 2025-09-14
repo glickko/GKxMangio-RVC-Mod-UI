@@ -1,8 +1,8 @@
 # GKxMangio RVC Mod UI Complex Parameter
 
 
-##IMPORTANT
-Default profile will not affected by formant shift, timbre, and auto pitch. you need choose other profile when you want to use Auto Timbre, Auto Pitch ETC
+## IMPORTANT
+**Default profile will not affected by formant shift, timbre, and auto pitch. you need choose other profile when you want to use Auto Timbre, Auto Pitch ETC
 
 
 
@@ -170,4 +170,5 @@ This guide provides a detailed explanation of every parameter in the user interf
 ## 📄 License
 
 This project is open-source and free to use and modify.
+
 
