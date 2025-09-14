@@ -1,5 +1,11 @@
 # GKxMangio RVC Mod UI Complex Parameter
 
+
+##IMPORTANT
+Default profile will not affected by formant shift, timbre, and auto pitch. you need choose other profile when you want to use Auto Timbre, Auto Pitch ETC
+
+
+
 This is a modified version of the Mangio RVC project, focusing on a streamlined real-time voice conversion experience with an intuitive graphical user interface (GUI). This fork introduces a comprehensive suite of features for advanced pitch control, formant shifting, and creative audio effects, along with significant code refactoring for improved stability and performance.
 
 <p align="center">
@@ -8,6 +14,7 @@ This is a modified version of the Mangio RVC project, focusing on a streamlined 
 <p align="center">
   <img src="https://raw.githubusercontent.com/glickko/GKxMangio-RVC-Mod-UI/main/ss2.jpg" alt="image">
 </p>
+
 
 
 ## 👾 Version Section
@@ -163,3 +170,4 @@ This guide provides a detailed explanation of every parameter in the user interf
 ## 📄 License
 
 This project is open-source and free to use and modify.
+
