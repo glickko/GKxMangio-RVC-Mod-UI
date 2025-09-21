@@ -129,11 +129,15 @@ class RVC:
     def _update_all_eq_params(self):
         if self.equalizer:
             for i, hz in enumerate(self.eq_freq_bands):
-                try: self.equalizer[i].gain_db = self.eq_gains_db.get(hz, 0.0)
+                try:
+                    gain = self.eq_gains_db.get(str(hz), self.eq_gains_db.get(hz, 0.0))
+                    self.equalizer[i].gain_db = gain
                 except Exception as e: print(f"Error updating Output EQ band {hz}Hz: {e}")
         if self.input_equalizer:
             for i, hz in enumerate(self.eq_freq_bands):
-                try: self.input_equalizer[i].gain_db = self.input_eq_gains_db.get(hz, 0.0)
+                try:
+                    gain = self.input_eq_gains_db.get(str(hz), self.input_eq_gains_db.get(hz, 0.0))
+                    self.input_equalizer[i].gain_db = gain
                 except Exception as e: print(f"Error updating Input EQ band {hz}Hz: {e}")
 
     def _apply_auto_pitch_correction(self, f0, base_f0_up_key, auto_pitch_settings):
@@ -429,3 +433,4 @@ class RVC:
         
         audio_np = self._apply_effects(infered_audio.data.cpu().float().numpy(), rms_level, effects_settings)
         return torch.from_numpy(audio_np.astype(np.float32))
+

@@ -225,7 +225,7 @@ if __name__ == "__main__":
             
             keys_to_remove = [f'eq_gain_{hz}hz_db' for hz in self.eq_freq_bands] + \
                              [f'input_eq_gain_{hz}hz_db' for hz in self.eq_freq_bands] + \
-                             ["split_pitch_crossover_display", "-EQ_PRESET_COMBO-", 'm2f', 'f2m', 'f2f', 'm2m', 'default', 'mic_input', 'file_input']
+                             ["split_pitch_crossover_display", "-EQ_PRESET_COMBO-", 'm2f', 'f2m', 'f2f', 'm2m', 'default', 'mic_input', 'file_input', '-INPUT_EQ_PRESET_COMBO-']
             
             final_values = {k: v for k, v in save_values.items() if k not in keys_to_remove and not isinstance(v, (list, tuple, dict)) or k in ['eq_gains_db', 'input_eq_gains_db']}
             return final_values
@@ -292,10 +292,12 @@ if __name__ == "__main__":
             self.update_pitch_shaper_visibility(profile)
 
             source = data.get("input_source", "microphone")
-            self.window['mic_input'].update(source == 'microphone')
-            self.window['file_input'].update(source == 'file')
-            self.window['audio_file_row'].update(visible=source == 'file')
-            self.window['input_device_col'].update(visible=source == 'microphone')
+            is_file_mode = source == 'file'
+            self.window['mic_input'].update(not is_file_mode)
+            self.window['file_input'].update(is_file_mode)
+            self.window['audio_file_row'].update(visible=is_file_mode)
+            self.window['input_device_col'].update(visible=not is_file_mode)
+            self.window['file_controls_frame'].update(visible=is_file_mode and self.audio_processor and self.audio_processor.flag_vc)
 
             for prefix in ["", "input_"]:
                 gains_key = f"{prefix}eq_gains_db"
@@ -322,7 +324,35 @@ if __name__ == "__main__":
                 for key, value in params_to_update.items():
                     if hasattr(self.config, key) or hasattr(self.audio_processor.rvc, key):
                         self.audio_processor.queue_parameter_update(key, value)
+        
+        def _apply_eq_preset(self, preset_name, values, prefix=""):
+            new_gains = {hz: 0.0 for hz in self.eq_freq_bands}
+            if preset_name == "Flatten":
+                pass # Already all 0
+            elif preset_name == "Invert":
+                current_gains = {hz: values.get(f'{prefix}eq_gain_{hz}hz_db', 0.0) for hz in self.eq_freq_bands}
+                new_gains = {hz: -gain for hz, gain in current_gains.items()}
+            elif preset_name == "Bass Boost":
+                new_gains.update({31: 6, 62: 4, 125: 2})
+            elif preset_name == "Treble Boost":
+                new_gains.update({4000: 2, 8000: 4, 16000: 6})
+            elif preset_name == "Bass Cut":
+                new_gains.update({31: -6, 62: -4, 125: -2})
+            elif preset_name == "Treble Cut":
+                new_gains.update({4000: -2, 8000: -4, 16000: -6})
+            elif preset_name == "Studio":
+                new_gains.update({31: 3, 62: 2, 125: 1, 500: -1, 1000: -2, 2000: -1, 8000: 2, 16000: 4})
+            elif preset_name == "HQ Phone":
+                new_gains.update({31: -12, 62: -8, 125: -4, 8000: -4, 16000: -8})
+            elif preset_name == "LQ Phone":
+                new_gains.update({31: -12, 62: -10, 125: -8, 250: -4, 4000: -4, 8000: -8, 16000: -12})
 
+            for hz, gain in new_gains.items():
+                self.window[f'{prefix}eq_gain_{hz}hz_db'].update(gain)
+                self.window[f'{prefix}eq_gain_label_{hz}hz'].update(f"{gain:.0f} dB")
+
+            if self.audio_processor:
+                self.audio_processor.queue_parameter_update(f'{prefix}eq_gains_db', new_gains)
 
         def launcher(self):
             data = self.load()
@@ -378,6 +408,8 @@ if __name__ == "__main__":
             self.performance_reset_keys = ["I_noise_reduce", "O_noise_reduce", "enable_cmd_diagnostics"]
             self.equalizer_reset_keys = ["enable_equalizer", "eq_gains_db"]
             
+            eq_preset_list = ["Flatten", "Invert", "Bass Boost", "Treble Boost", "Bass Cut", "Treble Cut", "Studio", "HQ Phone", "LQ Phone"]
+
             input_eq_band_columns = []
             input_eq_gains = data.get('input_eq_gains_db', {hz: 0.0 for hz in self.eq_freq_bands})
             for hz in self.eq_freq_bands:
@@ -391,9 +423,11 @@ if __name__ == "__main__":
                 input_eq_band_columns.append(band_col)
             
             input_equalizer_controls_layout = sg.Column([
-                [sg.Button("Flatten", key='-INPUT_EQ_FLATTEN-', size=(11,1)), sg.Button("Invert", key='-INPUT_EQ_INVERT-', size=(11,1))],
-                [sg.Button("Bass Boost", key='-INPUT_EQ_BASS_BOOST-', size=(11,1)), sg.Button("Treble Boost", key='-INPUT_EQ_TREBLE_BOOST-', size=(11,1))],
-                [sg.Button("Bass Cut", key='-INPUT_EQ_BASS_CUT-', size=(11,1)), sg.Button("Treble Cut", key='-INPUT_EQ_TREBLE_CUT-', size=(11,1))]
+                [
+                    sg.Text("Preset"),
+                    sg.Combo(eq_preset_list, key='-INPUT_EQ_PRESET_COMBO-', readonly=True, expand_x=True, tooltip="Select a preset EQ curve for the input audio."),
+                    sg.Button("Apply", key='-INPUT_EQ_APPLY_PRESET-')
+                ]
             ], pad=(10,10))
 
             input_equalizer_frame = sg.Frame("Input Equalizer", [
@@ -569,7 +603,6 @@ if __name__ == "__main__":
                 ], element_justification='center', pad=(8, 10))
                 eq_band_columns.append(band_col)
 
-            eq_preset_list = ["Flatten", "Invert", "Bass Boost", "Treble Boost", "Bass Cut", "Treble Cut", "Studio", "HQ Phone", "LQ Phone"]
             equalizer_controls_layout = sg.Column([
                 [sg.Checkbox("Enable EQ", key="enable_equalizer", default=enable_equalizer, enable_events=True, tooltip="Enables a 10-band graphic equalizer for the final output audio.")],
                 [
@@ -721,6 +754,12 @@ if __name__ == "__main__":
                 elif event == '-DELETE_PROFILE-': self._delete_profile(values['-PROFILE_LIST-']) if values['-PROFILE_LIST-'] else sg.popup("No profile selected to delete.", title="Info")
                 elif event == '-REFRESH_PROFILES-': self._update_profile_list()
 
+                # EQ Preset Events
+                elif event == '-EQ_APPLY_PRESET-':
+                    self._apply_eq_preset(values['-EQ_PRESET_COMBO-'], values, prefix="")
+                elif event == '-INPUT_EQ_APPLY_PRESET-':
+                    self._apply_eq_preset(values['-INPUT_EQ_PRESET_COMBO-'], values, prefix="input_")
+
                 elif event == "output_volume_normalization":
                     is_normalized = values["output_volume_normalization"]
                     self.window["output_volume"].update(disabled=is_normalized)
@@ -754,13 +793,37 @@ if __name__ == "__main__":
                     total_time_ms, avg_hz = values[event]
                     self.window["infer_time"].update(f"{int(total_time_ms)}"); self.window["avg_hz"].update(f"{avg_hz:.2f}")
                 
+                elif event == '-AUDIO_FILE_LOADED-':
+                    is_loaded, message = values[event]
+                    if is_loaded:
+                        self.window['play_file'].update(disabled=False)
+                        self.window['stop_file'].update(disabled=True)
+                        sg.popup("Audio file loaded successfully.", title="Success")
+                    else:
+                        self.window['play_file'].update(disabled=True)
+                        self.window['stop_file'].update(disabled=True)
+                        sg.popup(f"Failed to load audio file: {message}", title="Error")
+                elif event == '-FILE_PLAYBACK_STARTED-':
+                    self.window['play_file'].update(disabled=True)
+                    self.window['stop_file'].update(disabled=False)
+                elif event == '-FILE_PLAYBACK_STOPPED-':
+                    if values.get('file_input'): # Only re-enable if still in file mode
+                        self.window['play_file'].update(disabled=False)
+                        self.window['stop_file'].update(disabled=True)
+                
                 elif event == "refresh_devices":
                     input_devices, output_devices, _, _ = self.get_devices(update=True)
                     self.window["sg_input_device"].update(values=input_devices, value=values['sg_input_device'])
                     self.window["sg_output_device"].update(values=output_devices, value=values['sg_output_device'])
                     sg.popup("Device list has been refreshed.")
                 elif event in ("mic_input", "file_input"):
-                    self.window['audio_file_row'].update(visible=values["file_input"]); self.window['input_device_col'].update(visible=values["mic_input"])
+                    is_file_mode = values["file_input"]
+                    self.window['audio_file_row'].update(visible=is_file_mode)
+                    self.window['input_device_col'].update(visible=not is_file_mode)
+                    if self.audio_processor and self.audio_processor.flag_vc:
+                         self.window['file_controls_frame'].update(visible=is_file_mode)
+                elif event == "input_audio_path" and values["input_audio_path"] and self.audio_processor:
+                    self.audio_processor.request_load_file(values["input_audio_path"])
                 elif event == "use_index_file":
                     self.window['index_path_row'].update(visible=values["use_index_file"]); self.window['index_rate_row'].update(visible=values["use_index_file"])
                 elif event == "start_vc":
@@ -829,7 +892,11 @@ if __name__ == "__main__":
                 self.window["sg_samplerate"].update(f"{rvc.tgt_sr} Hz")
                 self.audio_processor = AudioProcessor(self.config, rvc, self.window)
                 self.audio_processor.start()
-                self.window["start_vc"].update(disabled=True); self.window["stop_vc"].update(disabled=False)
+                self.window["start_vc"].update(disabled=True)
+                self.window["stop_vc"].update(disabled=False)
+                if self.config.input_source == 'file':
+                    self.window['file_controls_frame'].update(visible=True)
+
             except Exception as e:
                 print(f"!!! FAILED TO INITIALIZE RVC CLASS !!!\n{traceback.format_exc()}"); sg.popup(f"Failed to initialize RVC: {e}")
 
@@ -856,3 +923,4 @@ if __name__ == "__main__":
                 sg.popup(f"Error setting devices: {e}")
 
     gui = GUI()
+
