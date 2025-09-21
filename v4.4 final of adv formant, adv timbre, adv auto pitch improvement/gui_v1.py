@@ -213,8 +213,6 @@ if __name__ == "__main__":
             profile = "Default"
             if values.get('m2f'): profile = "Male to Female"
             elif values.get('f2m'): profile = "Female to Male"
-            elif values.get('f2f'): profile = "Female to Female"
-            elif values.get('m2m'): profile = "Male to Male"
             save_values['voice_profile'] = profile
             
             save_values['input_source'] = "file" if values.get('file_input') else "microphone"
@@ -225,7 +223,7 @@ if __name__ == "__main__":
             
             keys_to_remove = [f'eq_gain_{hz}hz_db' for hz in self.eq_freq_bands] + \
                              [f'input_eq_gain_{hz}hz_db' for hz in self.eq_freq_bands] + \
-                             ["split_pitch_crossover_display", "-EQ_PRESET_COMBO-", 'm2f', 'f2m', 'f2f', 'm2m', 'default', 'mic_input', 'file_input', '-INPUT_EQ_PRESET_COMBO-']
+                             ["split_pitch_crossover_display", "-EQ_PRESET_COMBO-", 'm2f', 'f2m', 'default', 'mic_input', 'file_input', '-INPUT_EQ_PRESET_COMBO-']
             
             final_values = {k: v for k, v in save_values.items() if k not in keys_to_remove and not isinstance(v, (list, tuple, dict)) or k in ['eq_gains_db', 'input_eq_gains_db']}
             return final_values
@@ -286,7 +284,7 @@ if __name__ == "__main__":
                             element.update(value)
             
             profile = data.get("voice_profile", "Default")
-            profile_map = {"Default": "default", "Male to Female": "m2f", "Female to Male": "f2m", "Female to Female": "f2f", "Male to Male": "m2m"}
+            profile_map = {"Default": "default", "Male to Female": "m2f", "Female to Male": "f2m"}
             for p_name, p_key in profile_map.items():
                 self.window[p_key].update(profile == p_name)
             self.update_pitch_shaper_visibility(profile)
@@ -402,7 +400,7 @@ if __name__ == "__main__":
 
             self.visibility_param_keys = ["use_shout_dampening", "use_split_pitch_correction", "use_reverb", "enable_discord_effects", "enable_saturation_effect", "enable_cave_effect", "enable_low_freq_dampening", "enable_dynamic_proximity", "auto_pitch_correction", "enable_phone_effect", "enable_dynamic_timbre", "enable_dynamic_formant", "enable_equalizer", "enable_input_equalizer"]
             
-            self.main_reset_keys = ["threhold", "pitch", "index_rate", "input_volume", "input_formant_shift", "input_timbre", "output_volume", "output_volume_normalization", "bypass_vc", "default", "m2f", "f2m", "f2f", "m2m", "enable_input_equalizer", "input_eq_gains_db"]
+            self.main_reset_keys = ["threhold", "pitch", "index_rate", "input_volume", "input_formant_shift", "input_timbre", "output_volume", "output_volume_normalization", "bypass_vc", "default", "m2f", "f2m", "enable_input_equalizer", "input_eq_gains_db"]
             self.effects_reset_keys = ["timbre", "enable_dynamic_timbre", "dyn_timbre_attack_ms", "dyn_timbre_release_ms", "low_pitch_crossover", "high_pitch_crossover", "low_timbre_target", "mid_timbre_target", "high_timbre_target", "low_curve_factor", "high_curve_factor", "enable_brightness_sensor", "brightness_threshold", "min_f0_for_brightness", "enable_dynamic_formant", "formant_shift", "formant_attack_ms", "formant_release_ms", "low_formant_target", "mid_formant_target", "high_formant_target", "low_formant_curve_factor", "high_formant_curve_factor", "enable_low_freq_dampening", "low_freq_dampening_threshold_hz", "low_freq_dampening_level_db", "enable_saturation_effect", "saturation_threshold_hz", "saturation_drive_db", "enable_dynamic_proximity", "dynamic_proximity_strength", "dynamic_proximity_room_size", "enable_discord_effects", "discord_proximity", "discord_noise", "discord_quality", "enable_cave_effect", "cave_delay_time", "cave_feedback", "cave_mix", "use_reverb", "reverb_room_size", "reverb_damping", "reverb_wet_level", "reverb_dry_level", "enable_phone_effect"]
             self.autopitch_reset_keys = ["f0_smoothing_factor", "auto_pitch_correction", "auto_pitch_strength", "auto_pitch_max_adjustment", "pitch_stability", "use_shout_dampening", "shout_dampening_strength", "use_split_pitch_correction", "split_pitch_crossover_display", "low_pitch_strength", "low_pitch_max_adjustment", "high_pitch_strength", "high_pitch_max_adjustment"]
             self.performance_reset_keys = ["I_noise_reduce", "O_noise_reduce", "enable_cmd_diagnostics"]
@@ -455,9 +453,7 @@ if __name__ == "__main__":
                 [sg.Frame("Voice Profile", [[
                     sg.Radio("Default", "voice_profile", key="default", default=current_profile == "Default", enable_events=True, tooltip="Standard profile with no special pitch correction logic."),
                     sg.Radio("M->F", "voice_profile", key="m2f", default=current_profile == "Male to Female", enable_events=True, tooltip="Male to Female profile. Enables Auto Pitch Correction and other advanced shaping tools."), 
-                    sg.Radio("F->M", "voice_profile", key="f2m", default=current_profile == "Female to Male", enable_events=True, tooltip="Female to Male profile. Enables Auto Pitch Correction and other advanced shaping tools."), 
-                    sg.Radio("F->F", "voice_profile", key="f2f", default=current_profile == "Female to Female", enable_events=True, tooltip="Female to Female profile. Advanced shaping tools are hidden."), 
-                    sg.Radio("M->M", "voice_profile", key="m2m", default=current_profile == "Male to Male", enable_events=True, tooltip="Male to Male profile. Advanced shaping tools are hidden.")
+                    sg.Radio("F->M", "voice_profile", key="f2m", default=current_profile == "Female to Male", enable_events=True, tooltip="Female to Male profile. Enables Auto Pitch Correction and other advanced shaping tools."),
                 ]], expand_x=True)],
                 [sg.HSep()],
                 [input_equalizer_frame]
@@ -488,6 +484,11 @@ if __name__ == "__main__":
             
             model_devices_tab_layout = [[sg.Frame("Load Model", model_layout, expand_x=True)], [sg.Frame("Input Source", input_source_layout, expand_x=True)], [sg.Frame("Audio Devices", devices_layout, expand_x=True)]]
             
+            global_shapers_frame = sg.Frame("Global Shapers", [
+                [sg.Text("Global Formant Shift", tooltip="A single, global formant shift value."), sg.Slider(range=(0.5, 1.5), key="formant_shift", resolution=0.01, orientation="h", default_value=data.get("formant_shift", 1.0), expand_x=True, enable_events=True)],
+                [sg.Text("Global Timbre", tooltip="A single, global timbre adjustment."), sg.Slider(range=(0.0, 2.0), key="timbre", resolution=0.01, orientation="h", default_value=data.get("timbre", 1.0), expand_x=True, enable_events=True)]
+            ], expand_x=True)
+
             brightness_sensor_layout = sg.Frame("Brightness Sensor", [
                 [sg.Checkbox("Enable Brightness Sensor", key="enable_brightness_sensor", default=data.get("enable_brightness_sensor", False), enable_events=True, tooltip="Triggers the High Pitch Band based on spectral brightness (sibilance, shouting) instead of just F0.\nUseful if your high notes don't have a high F0.")],
                 [sg.Text("Brightness Threshold"), sg.Slider(range=(0.1, 5.0), key="brightness_threshold", resolution=0.05, orientation="h", default_value=data.get("brightness_threshold", 0.8), expand_x=True, enable_events=True, tooltip="How bright the sound needs to be to trigger the effect.\nLower values are more sensitive.")],
@@ -538,13 +539,8 @@ if __name__ == "__main__":
             ]
             dynamic_formant_frame = sg.Frame("Dynamic Formant Shaper", [
                 [sg.Checkbox("Enable Dynamic Formant", key="enable_dynamic_formant", default=enable_dynamic_formant, enable_events=True, tooltip="Enables pitch-aware, multi-band formant shaping for realism.")],
-                [sg.pin(sg.Column([[sg.Text("Static Formant Shift"), sg.Slider(range=(0.5, 1.5), key="formant_shift", resolution=0.01, orientation="h", default_value=data.get("formant_shift", 1.0), expand_x=True, enable_events=True, tooltip="A single, global formant shift value.")]], key='static_formant_row', visible=not enable_dynamic_formant))],
                 [sg.pin(sg.Column(dynamic_formant_settings_layout, key='dynamic_formant_column', visible=enable_dynamic_formant))]
             ], expand_x=True, key="dynamic_formant_frame")
-            
-            default_timbre_frame = sg.Frame("Global Timbre", [
-                [sg.pin(sg.Column([[sg.Text("Default Timbre"), sg.Slider(range=(0.0, 2.0), key="timbre", resolution=0.01, orientation="h", default_value=data.get("timbre", 1.0), expand_x=True, enable_events=True, tooltip="A single, global timbre adjustment.")]], key='default_timbre_row', visible=not enable_dynamic_timbre))]
-            ], expand_x=True)
             
             low_freq_dampening_frame = sg.Frame("Low Freq Dampening", [[sg.Checkbox("Enable", key="enable_low_freq_dampening", default=enable_low_freq_dampening, enable_events=True, tooltip="Reduces low-frequency energy when your pitch is below a threshold.")], [sg.pin(sg.Column([[sg.Text("Threshold (Hz)"), sg.Slider(range=(50, 200), key="low_freq_dampening_threshold_hz", resolution=1, orientation="h", default_value=data.get("low_freq_dampening_threshold_hz", 100.0), expand_x=True, enable_events=True)], [sg.Text("Dampen (dB)"), sg.Slider(range=(-24.0, 0.0), key="low_freq_dampening_level_db", resolution=0.5, orientation="h", default_value=data.get("low_freq_dampening_level_db", -6.0), expand_x=True, enable_events=True)],], key='low_freq_dampening_column', visible=enable_low_freq_dampening))]], expand_x=True)
             saturation_frame = sg.Frame("Saturation", [[sg.Checkbox("Enable", key="enable_saturation_effect", default=enable_saturation_effect, enable_events=True, tooltip="Adds harmonic distortion (drive) when pitch is above a threshold.")], [sg.pin(sg.Column([[sg.Text("Threshold (Hz)"), sg.Slider(range=(100, 2000), key="saturation_threshold_hz", resolution=10, orientation="h", default_value=data.get("saturation_threshold_hz", 800.0), expand_x=True, enable_events=True)], [sg.Text("Drive (dB)"), sg.Slider(range=(0.0, 24.0), key="saturation_drive_db", resolution=0.5, orientation="h", default_value=data.get("saturation_drive_db", 6.0), expand_x=True, enable_events=True)],], key='saturation_column', visible=enable_saturation_effect))]], expand_x=True)
@@ -555,11 +551,11 @@ if __name__ == "__main__":
             phone_effect_frame = sg.Frame("Phone Effect", [[sg.Checkbox("Enable", key="enable_phone_effect", default=enable_phone_effect, enable_events=True, tooltip="Simulates the sound of a telephone call (band-pass filter and saturation).")]], expand_x=True)
             
             effects_col_layout = [
-                [dynamic_formant_frame],
-                [default_timbre_frame],
+                [global_shapers_frame],
                 [sg.pin(sg.Column([
+                    [dynamic_formant_frame],
                     [dynamic_timbre_frame],
-                ], key="dynamic_timbre_master_column"))],
+                ], key="dynamic_shapers_master_column"))],
                 [dynamic_proximity_frame], 
                 [low_freq_dampening_frame], 
                 [saturation_frame], 
@@ -695,8 +691,10 @@ if __name__ == "__main__":
                     self.window[key].update(default_value)
                 
                 if self.audio_processor:
-                    if key in ["default", "m2f", "f2m", "f2f", "m2m"]:
+                    if key in ["default", "m2f", "f2m"]:
                         profile_name = "Default"
+                        if self.window['m2f'].get(): profile_name = "Male to Female"
+                        elif self.window['f2m'].get(): profile_name = "Female to Male"
                         self.audio_processor.queue_parameter_update("voice_profile", profile_name)
                         self.update_pitch_shaper_visibility(profile_name)
                     else:
@@ -706,12 +704,9 @@ if __name__ == "__main__":
                     self.update_visibility(key, default_value)
         
         def update_pitch_shaper_visibility(self, profile_name):
-            is_visible = profile_name in ["Male to Female", "Female to Male"]
-            self.window['pitch_shaper_column'].update(visible=is_visible)
-            self.window['dynamic_timbre_master_column'].update(visible=is_visible)
-            self.window['dynamic_formant_frame'].update(visible=is_visible)
-            self.window['default_timbre_row'].update(visible=not is_visible)
-            self.window['static_formant_row'].update(visible=not is_visible)
+            is_adv_visible = profile_name in ["Male to Female", "Female to Male"]
+            self.window['pitch_shaper_column'].update(visible=is_adv_visible)
+            self.window['dynamic_shapers_master_column'].update(visible=is_adv_visible)
             
         def update_visibility(self, key, value):
             if key == "use_shout_dampening": self.window['shout_dampening_slider_row'].update(visible=value)
@@ -779,12 +774,10 @@ if __name__ == "__main__":
                         self.audio_processor.queue_parameter_update(param_key, new_value)
                     if event in self.visibility_param_keys: self.update_visibility(event, values[event])
 
-                elif event in ["default", "m2f", "f2m", "f2f", "m2m"]:
+                elif event in ["default", "m2f", "f2m"]:
                     profile = "Default"
                     if values['m2f']: profile = "Male to Female"
                     elif values['f2m']: profile = "Female to Male"
-                    elif values['f2f']: profile = "Female to Female"
-                    elif values['m2m']: profile = "Male to Male"
                     self.update_pitch_shaper_visibility(profile)
                     if self.audio_processor:
                         self.audio_processor.queue_parameter_update("voice_profile", profile)
