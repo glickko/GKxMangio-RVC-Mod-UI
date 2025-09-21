@@ -563,7 +563,7 @@ if __name__ == "__main__":
                 [cave_effect_frame], 
                 [reverb_frame], 
                 [phone_effect_frame], 
-                [sg.Frame('', [[]], size=(10, 800), border_width=0, pad=(0,0))]
+                [sg.Frame('', [[]], size=(30, 800), border_width=0, pad=(0,0))]
             ]
             effects_tab_layout = [[sg.Push(), sg.Button("Reset", key="-RESET_EFFECTS-", size=(8,1), tooltip="Resets all settings on this tab to their default values.")], [sg.Column(effects_col_layout, scrollable=True, vertical_scroll_only=True, expand_x=True, expand_y=True)]]
 
