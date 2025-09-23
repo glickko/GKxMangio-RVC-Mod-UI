@@ -15,7 +15,7 @@ This is a modified version of the Mangio RVC project, focusing on a streamlined 
 These files are designed to be a **direct replacement** for the corresponding files in an existing Mangio RVC folder.
 
 1.  **Download the Modified Files**:
-    * Download `gui_v1.py`, `rvc_for_realtime.py`, and `audio_processor.py` from this repository.
+    * Download `gui_v1.py`, `rvc_for_realtime.py`, and `audio_processor.py` from this repository. or full https://huggingface.co/glickko/GKxMangioRVC-Mod/resolve/main/GKxMangio-RVC-v23.7.0.7z?download=true , and use virtfullline https://www.mediafire.com/file/15u798ajzqq8zy6/vac470full.rar/file , set all in sound windows settings for input and output device is have same samplerate [eg: 48000, 1channel]
 
 2.  **Replace the Original Files**:
     * Navigate to your main Mangio RVC installation folder.
@@ -54,6 +54,7 @@ These files are designed to be a **direct replacement** for the corresponding fi
 ## 📄 License
 
 This project is open-source and free to use and modify.
+
 
 
 
